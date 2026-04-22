@@ -1,0 +1,1007 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ems CRM — B2B Spider Web</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{height:100%;background:#050d1a}
+body{height:100%;font-family:'DM Sans',sans-serif;color:#c8dcf5;overflow:hidden;background:#050d1a}
+
+/* ── HEADER ── */
+#hdr{
+  position:absolute;top:0;left:0;right:0;height:56px;z-index:30;
+  background:rgba(5,13,26,0.92);border-bottom:1px solid rgba(0,212,255,0.14);
+  display:flex;align-items:center;gap:12px;padding:0 16px;
+  flex-wrap:nowrap;
+}
+.logo{display:flex;align-items:center;gap:9px;flex-shrink:0}
+.logo-box{
+  width:32px;height:32px;border-radius:9px;
+  background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.35);
+  display:flex;align-items:center;justify-content:center;
+}
+.logo-t{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:#fff;letter-spacing:-0.5px}
+.logo-s{font-size:9px;color:#4a6fa5;letter-spacing:2px;text-transform:uppercase}
+
+.srch{
+  position:relative;flex:0 0 170px;
+}
+.srch input{
+  width:100%;padding:6px 10px 6px 28px;
+  background:rgba(0,212,255,0.05);border:1px solid rgba(0,212,255,0.15);
+  border-radius:7px;color:#c8dcf5;font-family:'DM Sans',sans-serif;font-size:12px;
+  outline:none;transition:border-color .2s;
+}
+.srch input:focus{border-color:rgba(0,212,255,0.4)}
+.srch svg{position:absolute;left:8px;top:50%;transform:translateY(-50%);opacity:.4}
+
+.pills{display:flex;gap:5px;flex-shrink:0}
+.pl{
+  padding:4px 10px;border-radius:20px;font-size:11px;font-weight:500;
+  border:1px solid transparent;cursor:pointer;transition:all .15s;
+  color:#4a6fa5;display:flex;align-items:center;gap:4px;
+  background:transparent;
+}
+.pl:hover{border-color:rgba(0,212,255,0.2);color:#c8dcf5}
+.pl.on{border-color:rgba(0,212,255,0.35);color:#fff;background:rgba(0,212,255,0.08)}
+.pd{width:7px;height:7px;border-radius:50%}
+
+.stats{display:flex;gap:6px;margin-left:auto;flex-shrink:0}
+.sc{
+  padding:3px 12px;border-radius:7px;text-align:center;
+  border:1px solid rgba(0,212,255,0.12);background:rgba(0,212,255,0.04);
+}
+.sn{font-family:'Syne',sans-serif;font-size:15px;font-weight:700}
+.sl{font-size:9px;color:#4a6fa5;letter-spacing:1px;text-transform:uppercase}
+
+.zbx{display:flex;gap:3px;flex-shrink:0}
+.zb{
+  width:28px;height:28px;border-radius:7px;
+  border:1px solid rgba(0,212,255,0.15);background:rgba(0,212,255,0.04);
+  color:#c8dcf5;font-size:15px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;transition:all .15s;
+}
+.zb:hover{background:rgba(0,212,255,0.12);color:#00d4ff}
+
+/* ── CANVAS AREA ── */
+#wrap{position:absolute;top:56px;left:0;right:0;bottom:0}
+#bgc,#mc{position:absolute;top:0;left:0;width:100%;height:100%}
+#bgc{z-index:0;pointer-events:none}
+#mc{z-index:1;cursor:grab}
+#mc:active{cursor:grabbing}
+
+/* ── TOOLTIP ── */
+#tip{
+  position:fixed;z-index:50;pointer-events:none;display:none;
+  background:rgba(8,18,32,0.95);border:1px solid rgba(0,212,255,0.2);
+  border-radius:8px;padding:7px 12px;font-size:12px;
+  box-shadow:0 4px 20px rgba(0,0,0,.5);
+  max-width:200px;
+}
+#tip-n{font-weight:500;color:#fff;margin-bottom:2px}
+#tip-s{font-size:11px}
+
+/* ── SIDE PANEL ── */
+#panel{
+  position:absolute;top:0;right:-310px;bottom:0;width:300px;z-index:20;
+  background:rgba(8,18,32,0.97);border-left:1px solid rgba(0,212,255,0.14);
+  transition:right .35s cubic-bezier(.22,1,.36,1);
+  display:flex;flex-direction:column;overflow:hidden;
+}
+#panel.open{right:0}
+.p-glow{
+  position:absolute;top:0;left:0;right:0;height:160px;pointer-events:none;
+  background:radial-gradient(ellipse at 50% 0%,rgba(0,212,255,0.07),transparent 70%);
+}
+.p-hd{padding:18px 18px 14px;border-bottom:1px solid rgba(0,212,255,0.1);position:relative}
+.p-badge{
+  display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;
+  font-weight:500;letter-spacing:.5px;margin-bottom:7px;
+  background:rgba(0,212,255,0.1);color:#00d4ff;border:1px solid rgba(0,212,255,0.2);
+}
+.p-name{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:#fff;line-height:1.2}
+.p-parent{font-size:11px;color:#4a6fa5;margin-top:3px}
+.p-close{
+  position:absolute;top:14px;right:14px;width:26px;height:26px;border-radius:6px;
+  border:1px solid rgba(0,212,255,0.15);background:rgba(0,212,255,0.05);
+  color:#4a6fa5;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:all .15s;
+}
+.p-close:hover{color:#fff;border-color:rgba(0,212,255,0.3)}
+.p-st{
+  display:flex;align-items:center;gap:6px;
+  padding:5px 11px;border-radius:20px;font-size:12px;font-weight:500;
+  border:1px solid;margin:12px 18px 0;
+}
+.p-std{width:7px;height:7px;border-radius:50%}
+.p-body{flex:1;overflow-y:auto;padding:14px 18px;scrollbar-width:thin;scrollbar-color:#1e3a5f transparent}
+.fld{margin-bottom:12px}
+.flb{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#4a6fa5;margin-bottom:4px}
+.flv{
+  font-size:12px;color:#c8dcf5;
+  background:rgba(0,212,255,0.04);border:1px solid rgba(0,212,255,0.1);
+  border-radius:7px;padding:6px 10px;
+}
+.flv a{color:#00d4ff;text-decoration:none}
+.flv a:hover{text-decoration:underline}
+.dvd{height:1px;background:rgba(0,212,255,0.1);margin:12px 0}
+select.stsel{
+  width:100%;padding:7px 10px;
+  background:rgba(0,212,255,0.04);border:1px solid rgba(0,212,255,0.15);
+  border-radius:7px;color:#c8dcf5;font-family:'DM Sans',sans-serif;font-size:12px;
+  outline:none;cursor:pointer;
+}
+select.stsel option{background:#0b1929}
+textarea.nta{
+  width:100%;padding:7px 10px;min-height:70px;
+  background:rgba(0,212,255,0.04);border:1px solid rgba(0,212,255,0.15);
+  border-radius:7px;color:#c8dcf5;font-family:'DM Sans',sans-serif;font-size:12px;
+  outline:none;resize:none;line-height:1.6;
+}
+textarea.nta::placeholder{color:#2d4a6e}
+.arow{display:flex;gap:7px;margin-top:4px}
+.ab{
+  flex:1;padding:8px;border-radius:7px;
+  font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;
+  cursor:pointer;transition:all .18s;border:1px solid;
+  display:flex;align-items:center;justify-content:center;gap:4px;
+}
+.ab-g{background:rgba(0,212,255,0.07);border-color:rgba(0,212,255,0.25);color:#00d4ff}
+.ab-g:hover{background:rgba(0,212,255,0.15)}
+.ab-p{background:rgba(255,179,0,0.07);border-color:rgba(255,179,0,0.25);color:#ffb300}
+.ab-p:hover{background:rgba(255,179,0,0.15)}
+
+/* ── LEGEND ── */
+#leg{
+  position:absolute;bottom:18px;left:18px;z-index:20;
+  background:rgba(8,18,32,0.92);border:1px solid rgba(0,212,255,0.12);
+  border-radius:10px;padding:10px 14px;
+}
+.lt{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:#4a6fa5;margin-bottom:7px}
+.lr{display:flex;align-items:center;gap:7px;font-size:11px;color:#c8dcf5;margin-bottom:4px}
+.lr:last-child{margin-bottom:0}
+.ld{width:8px;height:8px;border-radius:50%}
+
+/* ── EMAIL MODAL ── */
+#emodal{
+  position:fixed;inset:0;z-index:100;
+  background:rgba(5,13,26,0.85);
+  display:none;align-items:center;justify-content:center;padding:20px;
+}
+#emodal.open{display:flex}
+.em-box{
+  width:100%;max-width:600px;
+  background:#0b1929;border:1px solid rgba(0,212,255,0.2);
+  border-radius:16px;overflow:hidden;
+  box-shadow:0 30px 80px rgba(0,0,0,0.7);
+  animation:mIn .3s cubic-bezier(.22,1,.36,1);
+}
+@keyframes mIn{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}
+.em-hd{
+  padding:16px 20px 14px;border-bottom:1px solid rgba(0,212,255,0.12);
+  background:linear-gradient(180deg,rgba(0,212,255,0.05),transparent);
+  display:flex;align-items:flex-start;justify-content:space-between;
+}
+.em-co{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:#00d4ff;margin-bottom:3px}
+.em-ti{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:#fff}
+.em-cl{
+  width:26px;height:26px;border-radius:6px;
+  border:1px solid rgba(0,212,255,0.15);background:rgba(0,212,255,0.05);
+  color:#4a6fa5;font-size:14px;cursor:pointer;flex-shrink:0;margin-left:12px;
+  display:flex;align-items:center;justify-content:center;transition:all .15s;
+}
+.em-cl:hover{color:#fff}
+.em-bd{padding:16px 20px}
+.ef{margin-bottom:11px}
+.efl{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#4a6fa5;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.ewc{display:inline-block;padding:1px 7px;border-radius:8px;background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.2);font-size:10px;color:#00d4ff}
+input.efi{
+  width:100%;padding:7px 10px;
+  background:rgba(0,212,255,0.04);border:1px solid rgba(0,212,255,0.15);
+  border-radius:7px;color:#c8dcf5;font-family:'DM Sans',sans-serif;font-size:12px;outline:none;
+}
+input.efi:focus{border-color:rgba(0,212,255,0.4)}
+.ebw{position:relative}
+textarea.eba{
+  width:100%;min-height:210px;padding:10px 12px;
+  background:rgba(0,212,255,0.04);border:1px solid rgba(0,212,255,0.15);
+  border-radius:7px;color:#c8dcf5;font-family:'DM Sans',sans-serif;
+  font-size:12px;line-height:1.7;outline:none;resize:vertical;
+}
+textarea.eba:focus{border-color:rgba(0,212,255,0.4)}
+textarea.eba::placeholder{color:#2d4a6e}
+.ego{
+  position:absolute;inset:0;background:rgba(11,25,41,0.88);
+  border-radius:7px;display:none;align-items:center;justify-content:center;
+  flex-direction:column;gap:10px;
+}
+.ego.on{display:flex}
+.esp{
+  width:26px;height:26px;border-radius:50%;
+  border:2px solid rgba(0,212,255,0.2);border-top-color:#00d4ff;
+  animation:sp .7s linear infinite;
+}
+@keyframes sp{to{transform:rotate(360deg)}}
+.egt{font-size:12px;color:#4a6fa5}
+.ecc{font-size:11px;color:#2d4a6e;text-align:right;margin-top:3px}
+.em-ft{
+  padding:11px 20px 14px;border-top:1px solid rgba(0,212,255,0.12);
+  display:flex;gap:8px;align-items:center;flex-wrap:wrap;
+}
+.em-fn{flex:1;font-size:11px;color:#4a6fa5;min-width:100px}
+.mb{
+  padding:8px 14px;border-radius:7px;
+  font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;
+  cursor:pointer;transition:all .18s;border:1px solid;
+  display:flex;align-items:center;gap:5px;white-space:nowrap;
+}
+.mb-g{background:rgba(0,212,255,0.07);border-color:rgba(0,212,255,0.25);color:#00d4ff}
+.mb-g:hover{background:rgba(0,212,255,0.15)}
+.mb-g:disabled{opacity:.4;cursor:not-allowed}
+.mb-c{background:rgba(0,255,157,0.06);border-color:rgba(0,255,157,0.25);color:#00ff9d}
+.mb-c:hover{background:rgba(0,255,157,0.14)}
+.mb-m{background:rgba(0,212,255,0.1);border-color:rgba(0,212,255,0.3);color:#fff}
+.mb-m:hover{background:rgba(0,212,255,0.18)}
+.mb-p{background:rgba(255,179,0,0.07);border-color:rgba(255,179,0,0.25);color:#ffb300}
+.mb-p:hover{background:rgba(255,179,0,0.15)}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div id="hdr">
+  <div class="logo">
+    <div class="logo-box">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#00d4ff" stroke-width="2.2">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M16.9 16.9l2.1 2.1M19.1 4.9l-2.1 2.1M7.1 16.9l-2.1 2.1"/>
+      </svg>
+    </div>
+    <div>
+      <div class="logo-t">Ems CRM</div>
+      <div class="logo-s">B2B Spider Web</div>
+    </div>
+  </div>
+
+  <div class="srch">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#00d4ff" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input id="srchInput" placeholder="Search…" oninput="doSearch(this.value)" autocomplete="off">
+  </div>
+
+  <div class="pills">
+    <div class="pl on" onclick="setFilter('all',this)"><span class="pd" style="background:#4a6fa5"></span>All</div>
+    <div class="pl" onclick="setFilter('no-contact',this)"><span class="pd" style="background:#4a6fa5"></span>None</div>
+    <div class="pl" onclick="setFilter('pitched',this)"><span class="pd" style="background:#ffb300"></span>Pitched</div>
+    <div class="pl" onclick="setFilter('replied',this)"><span class="pd" style="background:#00d4ff"></span>Replied</div>
+    <div class="pl" onclick="setFilter('meeting',this)"><span class="pd" style="background:#a855f7"></span>Meeting</div>
+    <div class="pl" onclick="setFilter('closed',this)"><span class="pd" style="background:#00ff9d"></span>Won</div>
+  </div>
+
+  <div class="stats">
+    <div class="sc"><div class="sn" style="color:#c8dcf5" id="sT">48</div><div class="sl">Total</div></div>
+    <div class="sc"><div class="sn" style="color:#ffb300" id="sP">0</div><div class="sl">Pitched</div></div>
+    <div class="sc"><div class="sn" style="color:#00d4ff" id="sR">0</div><div class="sl">Replied</div></div>
+    <div class="sc"><div class="sn" style="color:#00ff9d" id="sW">0</div><div class="sl">Won</div></div>
+  </div>
+
+  <div class="zbx">
+    <button class="zb" onclick="doZoom(1.25)">+</button>
+    <button class="zb" onclick="doZoom(0.8)">−</button>
+    <button class="zb" onclick="resetView()">⌖</button>
+  </div>
+</div>
+
+<!-- CANVAS AREA -->
+<div id="wrap">
+  <canvas id="bgc"></canvas>
+  <canvas id="mc"></canvas>
+</div>
+
+<!-- TOOLTIP -->
+<div id="tip"><div id="tip-n"></div><div id="tip-s"></div></div>
+
+<!-- SIDE PANEL -->
+<div id="panel">
+  <div class="p-glow"></div>
+  <div class="p-hd">
+    <button class="p-close" onclick="closePanel()">✕</button>
+    <div class="p-badge" id="pBadge"></div>
+    <div class="p-name" id="pName"></div>
+    <div class="p-parent" id="pParent"></div>
+  </div>
+  <div class="p-st" id="pSt"><span class="p-std" id="pStd"></span><span id="pStl"></span></div>
+  <div class="p-body">
+    <div class="fld"><div class="flb">Email</div><div class="flv" id="pEmail"></div></div>
+    <div class="fld"><div class="flb">Phone</div><div class="flv" id="pPhone"></div></div>
+    <div class="dvd"></div>
+    <div class="fld">
+      <div class="flb">Status</div>
+      <select class="stsel" id="pSel" onchange="updateStatus(this.value)">
+        <option value="no-contact">No contact</option>
+        <option value="pitched">Pitched</option>
+        <option value="replied">Replied</option>
+        <option value="meeting">Meeting set</option>
+        <option value="closed">Won / Closed</option>
+      </select>
+    </div>
+    <div class="fld">
+      <div class="flb">Notes</div>
+      <textarea class="nta" id="pNotes" placeholder="Add notes, contacts, follow-up dates…" onchange="saveNote(this.value)"></textarea>
+    </div>
+    <div class="dvd"></div>
+    <div class="arow">
+      <button class="ab ab-g" onclick="openEmailModal()">✦ Gen Email</button>
+      <button class="ab ab-p" onclick="quickPitch()">✓ Pitched</button>
+    </div>
+  </div>
+</div>
+
+<!-- LEGEND -->
+<div id="leg">
+  <div class="lt">Status Key</div>
+  <div class="lr"><span class="ld" style="background:#4a6fa5"></span>No contact</div>
+  <div class="lr"><span class="ld" style="background:#ffb300"></span>Pitched</div>
+  <div class="lr"><span class="ld" style="background:#00d4ff"></span>Replied</div>
+  <div class="lr"><span class="ld" style="background:#a855f7"></span>Meeting set</div>
+  <div class="lr"><span class="ld" style="background:#00ff9d"></span>Won</div>
+</div>
+
+<!-- EMAIL MODAL -->
+<div id="emodal" onclick="modalBgClick(event)">
+  <div class="em-box">
+    <div class="em-hd">
+      <div>
+        <div class="em-co" id="emCo">✦ AI-Generated Email</div>
+        <div class="em-ti" id="emTi">Email Preview</div>
+      </div>
+      <button class="em-cl" onclick="closeEmailModal()">✕</button>
+    </div>
+    <div class="em-bd">
+      <div class="ef">
+        <div class="efl">To</div>
+        <input class="efi" id="emTo" type="email">
+      </div>
+      <div class="ef">
+        <div class="efl">Subject</div>
+        <input class="efi" id="emSub">
+      </div>
+      <div class="ef">
+        <div class="efl">Body <span class="ewc" id="emWc">0 words</span></div>
+        <div class="ebw">
+          <textarea class="eba" id="emBody" placeholder="Click ✦ Generate — Claude will write a personalised pitch email…" oninput="countWords()"></textarea>
+          <div class="ego" id="emOv">
+            <div class="esp"></div>
+            <div class="egt" id="emSt">Claude is writing…</div>
+          </div>
+        </div>
+        <div class="ecc" id="emCc">0 chars</div>
+      </div>
+    </div>
+    <div class="em-ft">
+      <div class="em-fn" id="emFn">Click Generate to create a personalised email.</div>
+      <button class="mb mb-g" id="genBtn" onclick="generateEmail()">✦ Generate</button>
+      <button class="mb mb-c" onclick="copyEmail()">⎘ Copy</button>
+      <button class="mb mb-m" onclick="openMailto()">✉ Mail</button>
+      <button class="mb mb-p" onclick="markPitchedFromModal()">✓ Pitched</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────────
+const COS = [
+  {id:1,  name:"Ceylon Cold Stores",     parent:"John Keells",   sector:"Manufacturing", email:"info@elephanthouse.lk",               phone:"+94 11 2318777"},
+  {id:2,  name:"Keells Food Products",   parent:"John Keells",   sector:"Manufacturing", email:"info@keellsfoods.lk",                 phone:"+94 11 2236317"},
+  {id:3,  name:"Keells Super",           parent:"John Keells",   sector:"Retail",        email:"info@keells.com",                     phone:"+94 11 2306000"},
+  {id:4,  name:"JK Logistics",          parent:"John Keells",   sector:"Logistics",     email:"info@keellslogistics.com",            phone:"+94 11 2475574"},
+  {id:5,  name:"JK Properties",         parent:"John Keells",   sector:"Property",      email:"jkp@keells.com",                      phone:"+94 11 2152152"},
+  {id:6,  name:"Cinnamon Grand",         parent:"John Keells",   sector:"Hotel",         email:"info@cinnamonhotels.com",             phone:"+94 11 2437437"},
+  {id:7,  name:"Cinnamon Lakeside",      parent:"John Keells",   sector:"Hotel",         email:"info@cinnamonhotels.com",             phone:"+94 11 2491491"},
+  {id:8,  name:"Haycarb PLC",           parent:"Hayleys",       sector:"Manufacturing", email:"adk@haycarb.com",                    phone:"+94 11 2687565"},
+  {id:9,  name:"Dipped Products",        parent:"Hayleys",       sector:"Manufacturing", email:"indika@dplgroup.com",                 phone:"+94 11 2683964"},
+  {id:10, name:"Hayleys Advantis",       parent:"Hayleys",       sector:"Logistics",     email:"info@hayleysadvantis.com",           phone:"+94 11 2636200"},
+  {id:11, name:"Singer Sri Lanka",       parent:"Hayleys",       sector:"Retail",        email:"info@singersl.com",                  phone:"+94 11 4316725"},
+  {id:12, name:"The Kingsbury",          parent:"Hayleys",       sector:"Hotel",         email:"info@thekingsbury.lk",               phone:"+94 11 2421221"},
+  {id:13, name:"Alumex PLC",            parent:"Hayleys",       sector:"Manufacturing", email:"info@alumex.lk",                    phone:"+94 11 2806091"},
+  {id:14, name:"Hayleys Fentons",        parent:"Hayleys",       sector:"Engineering",   email:"info@hayleysfentons.lk",            phone:"+94 11 2697600"},
+  {id:15, name:"AS Printing",           parent:"Aitken Spence", sector:"Manufacturing", email:"info@aitkenspenceprinting.lk",      phone:"+94 11 2976312"},
+  {id:16, name:"Heritance Hotels",       parent:"Aitken Spence", sector:"Hotel",         email:"reservation@aitkenspencehotels.com", phone:"+94 11 2308408"},
+  {id:17, name:"AS Freight",            parent:"Aitken Spence", sector:"Logistics",     email:"info@aitkenspence.lk",              phone:"+94 11 2308308"},
+  {id:18, name:"Hemas Manufacturing",    parent:"Hemas",         sector:"Manufacturing", email:"info@hemas.com",                    phone:"+94 11 4716444"},
+  {id:19, name:"Hemas Hosp. Wattala",   parent:"Hemas",         sector:"Hospital",      email:"info@hemashospitals.com",           phone:"+94 11 7888888"},
+  {id:20, name:"Hemas Hosp. Thala.",    parent:"Hemas",         sector:"Hospital",      email:"info@hemashospitals.com",           phone:"+94 11 7888888"},
+  {id:21, name:"Morison Limited",        parent:"Hemas",         sector:"Pharma",        email:"info@morison.lk",                   phone:"+94 11 2904222"},
+  {id:22, name:"Hemas Pharma",          parent:"Hemas",         sector:"Pharma",        email:"info_hemas.pharma@hemas.com",       phone:"+94 11 4766666"},
+  {id:23, name:"Asiri Medical",          parent:"Softlogic",     sector:"Hospital",      email:"info@asiri.lk",                     phone:"+94 11 4523300"},
+  {id:24, name:"Asiri Surgical",         parent:"Softlogic",     sector:"Hospital",      email:"info@asiri.lk",                     phone:"+94 11 4524400"},
+  {id:25, name:"Asiri Central",          parent:"Softlogic",     sector:"Hospital",      email:"infochl@asiri.lk",                  phone:"+94 11 4665500"},
+  {id:26, name:"ODEL",                  parent:"Softlogic",     sector:"Retail",        email:"info@odel.lk",                      phone:"+94 11 2682788"},
+  {id:27, name:"Cargills FoodCity",      parent:"Cargills",      sector:"Retail",        email:"contact@cargillsceylon.com",        phone:"+94 11 2427500"},
+  {id:28, name:"Cargills Foods",         parent:"Cargills",      sector:"Manufacturing", email:"contact@cargillsceylon.com",        phone:"+94 11 2521100"},
+  {id:29, name:"Kotmale Dairy",         parent:"Cargills",      sector:"Manufacturing", email:"contact@cargillsceylon.com",        phone:"+94 11 2427500"},
+  {id:30, name:"MAS Intimates",          parent:"MAS Holdings",  sector:"Manufacturing", email:"info@masholdings.com",              phone:"+94 11 4796444"},
+  {id:31, name:"MAS Active",            parent:"MAS Holdings",  sector:"Manufacturing", email:"info@masholdings.com",              phone:"+94 11 4796444"},
+  {id:32, name:"MAS Fabric Park",        parent:"MAS Holdings",  sector:"Manufacturing", email:"info@masholdings.com",              phone:"+94 11 4796444"},
+  {id:33, name:"Hirdaramani Group",      parent:"Hirdaramani",   sector:"Manufacturing", email:"info@hirdaramani.com",              phone:"+94 11 4797000"},
+  {id:34, name:"Ceylon Knit Trend",      parent:"Hirdaramani",   sector:"Manufacturing", email:"info@hirdaramani.com",              phone:"+94 11 4797000"},
+  {id:35, name:"Shangri-La Colombo",     parent:"Independent",   sector:"Hotel",         email:"info.slco@shangri-la.com",         phone:"+94 11 7888288"},
+  {id:36, name:"Hilton Colombo",         parent:"Independent",   sector:"Hotel",         email:"info.colombo@hilton.com",          phone:"+94 11 2492492"},
+  {id:37, name:"Taj Samudra",           parent:"Independent",   sector:"Hotel",         email:"reservations.taj@tajhotels.com",   phone:"+94 11 2446622"},
+  {id:38, name:"Galle Face Hotel",       parent:"Independent",   sector:"Hotel",         email:"reservations@gallefacehotel.com",  phone:"+94 11 2541010"},
+  {id:39, name:"Jetwing Hotels",         parent:"Independent",   sector:"Hotel",         email:"info@jetwinghotels.com",           phone:"+94 11 2381201"},
+  {id:40, name:"Lanka Hospitals",        parent:"Independent",   sector:"Hospital",      email:"info@lankahospitals.com",          phone:"+94 11 5430000"},
+  {id:41, name:"Nawaloka Hospital",      parent:"Independent",   sector:"Hospital",      email:"nawaloka@slt.lk",                  phone:"+94 11 5577111"},
+  {id:42, name:"Durdans Hospital",       parent:"Independent",   sector:"Hospital",      email:"contactus@durdans.com",            phone:"+94 11 2140000"},
+  {id:43, name:"Ceylon Biscuits",        parent:"Independent",   sector:"Manufacturing", email:"info@cbl.lk",                      phone:"+94 11 2799400"},
+  {id:44, name:"Brandix Lanka",          parent:"Independent",   sector:"Manufacturing", email:"info@brandix.com",                 phone:"+94 11 2396100"},
+  {id:45, name:"DSI Samson",            parent:"Independent",   sector:"Manufacturing", email:"info@dsisamson.com",               phone:"+94 11 2379000"},
+  {id:46, name:"DIMO",                  parent:"Independent",   sector:"Engineering",   email:"info@dimo.lk",                    phone:"+94 11 2430200"},
+  {id:47, name:"Prima Ceylon",           parent:"Independent",   sector:"Manufacturing", email:"info@prima.lk",                    phone:"+94 11 2440700"},
+  {id:48, name:"Sierra Cables",          parent:"Independent",   sector:"Manufacturing", email:"info@sierracables.lk",             phone:"+94 11 2414444"},
+];
+
+const GROUPS = [...new Set(COS.map(c=>c.parent))];
+const GHUE = {'John Keells':195,'Hayleys':30,'Aitken Spence':260,'Hemas':150,'Softlogic':290,'Cargills':45,'MAS Holdings':170,'Hirdaramani':0,'Independent':220};
+const ST = {
+  'no-contact':{c:'#4a6fa5',g:'rgba(74,111,165,.35)',l:'No contact'},
+  'pitched':   {c:'#ffb300',g:'rgba(255,179,0,.45)', l:'Pitched'},
+  'replied':   {c:'#00d4ff',g:'rgba(0,212,255,.5)',  l:'Replied'},
+  'meeting':   {c:'#a855f7',g:'rgba(168,85,247,.5)', l:'Meeting set'},
+  'closed':    {c:'#00ff9d',g:'rgba(0,255,157,.5)',  l:'Won'},
+};
+const SCTX = {
+  Manufacturing:'large factory with continuous production lines, motors, compressors and industrial HVAC running 24/7',
+  Hotel:'5-star hotel with 24/7 HVAC, laundry, kitchen, pool heating and hundreds of guest rooms',
+  Hospital:'hospital operating 24/7 with ICU, OTs, diagnostic imaging and life-support systems',
+  Retail:'supermarket chain with heavy refrigeration, lighting and HVAC across multiple outlets',
+  Logistics:'logistics hub with large warehousing, conveyor systems and heavy-duty handling equipment',
+  Pharma:'pharmaceutical facility with climate-controlled storage, clean-room manufacturing and cold-chain',
+  Engineering:'engineering firm with workshops, large equipment and office facilities',
+  Property:'commercial real estate portfolio with centralised HVAC, lifts, lighting and building services',
+};
+
+// state
+const statuses={}, notes={};
+COS.forEach(c=>{statuses[c.id]='no-contact';notes[c.id]='';});
+
+// canvas refs
+const bgEl=document.getElementById('bgc');
+const bgCtx=bgEl.getContext('2d');
+const mcEl=document.getElementById('mc');
+const ctx=mcEl.getContext('2d');
+const wrap=document.getElementById('wrap');
+
+let W=0,H=0,nodes=[],edges=[];
+let sc=1,ox=0,oy=0;
+let drag=false,ds={},do_={}; 
+let selId=null,hovId=null,filter='all',srch='';
+let stars=[];
+let modalCo=null;
+let raf;
+
+// ── RESIZE ──
+function resize(){
+  W=wrap.clientWidth; H=wrap.clientHeight;
+  bgEl.width=W; bgEl.height=H;
+  mcEl.width=W; mcEl.height=H;
+  buildGraph();
+  initStars();
+}
+
+// ── STARS ──
+function initStars(){
+  stars=[];
+  for(let i=0;i<160;i++){
+    stars.push({
+      x:Math.random()*W, y:Math.random()*H,
+      r:Math.random()*1.1+0.2,
+      a:Math.random()*0.7+0.1,
+      ph:Math.random()*Math.PI*2,
+      sp:Math.random()*0.004+0.001
+    });
+  }
+}
+
+function drawBg(t){
+  bgCtx.fillStyle='#050d1a';
+  bgCtx.fillRect(0,0,W,H);
+  stars.forEach(s=>{
+    const al=s.a*(0.3+0.7*Math.sin(t*s.sp+s.ph));
+    bgCtx.beginPath();
+    bgCtx.arc(s.x,s.y,s.r,0,Math.PI*2);
+    bgCtx.fillStyle=`rgba(200,220,250,${al.toFixed(2)})`;
+    bgCtx.fill();
+  });
+  // center glow
+  const g=bgCtx.createRadialGradient(W/2,H/2,0,W/2,H/2,Math.min(W,H)*0.5);
+  g.addColorStop(0,'rgba(0,60,140,.1)');
+  g.addColorStop(1,'transparent');
+  bgCtx.fillStyle=g;
+  bgCtx.fillRect(0,0,W,H);
+}
+
+// ── GRAPH ──
+function buildGraph(){
+  nodes=[]; edges=[];
+  const cx=W/2, cy=H/2;
+  const hubR=Math.min(W,H)*0.3;
+  const leafR=Math.min(W,H)*0.17;
+
+  nodes.push({id:'ctr',isC:true,x:cx,y:cy,r:30,label:'Ems'});
+
+  GROUPS.forEach((g,gi)=>{
+    const a=(gi/GROUPS.length)*Math.PI*2-Math.PI*0.5;
+    const hx=cx+Math.cos(a)*hubR, hy=cy+Math.sin(a)*hubR;
+    const hue=GHUE[g]||200;
+    nodes.push({id:'h_'+g,isH:true,g,x:hx,y:hy,r:18,label:g,hue,ang:a});
+    edges.push({a:'h_'+g,b:'ctr',hub:true});
+
+    const ms=COS.filter(c=>c.parent===g);
+    const sp=Math.min(1.1,ms.length*0.2);
+    ms.forEach((c,i)=>{
+      const t2=ms.length===1?.5:i/(ms.length-1);
+      const la=a-sp/2+t2*sp;
+      const jx=(Math.random()-.5)*12, jy=(Math.random()-.5)*12;
+      nodes.push({
+        id:c.id,isH:false,isC:false,
+        x:hx+Math.cos(la)*leafR+jx,
+        y:hy+Math.sin(la)*leafR+jy,
+        r:10,label:c.name,co:c,hue
+      });
+      edges.push({a:c.id,b:'h_'+g,hub:false});
+    });
+  });
+}
+
+function getNode(id){return nodes.find(n=>n.id===id);}
+function visible(n){
+  if(n.isH||n.isC) return true;
+  if(filter!=='all'&&statuses[n.id]!==filter) return false;
+  if(srch){
+    const q=srch.toLowerCase();
+    return n.co.name.toLowerCase().includes(q)||n.co.parent.toLowerCase().includes(q)||n.co.sector.toLowerCase().includes(q);
+  }
+  return true;
+}
+
+// ── DRAW ──
+function draw(t=0){
+  ctx.clearRect(0,0,W,H);
+  ctx.save();
+  ctx.translate(ox,oy);
+  ctx.scale(sc,sc);
+
+  // edges
+  edges.forEach(e=>{
+    const na=getNode(e.a), nb=getNode(e.b);
+    if(!na||!nb) return;
+    if(!visible(na)&&!na.isH) return;
+    const st2=na.isH?null:statuses[na.id];
+    const active=st2&&st2!=='no-contact';
+
+    if(active){
+      ctx.save();
+      ctx.beginPath(); ctx.moveTo(na.x,na.y); ctx.lineTo(nb.x,nb.y);
+      ctx.strokeStyle=ST[st2].g;
+      ctx.lineWidth=4; ctx.lineCap='round';
+      ctx.shadowBlur=10; ctx.shadowColor=ST[st2].c;
+      ctx.stroke(); ctx.restore();
+    }
+
+    ctx.beginPath(); ctx.moveTo(na.x,na.y); ctx.lineTo(nb.x,nb.y);
+    if(e.hub){
+      ctx.strokeStyle=`hsla(${na.hue||200},60%,55%,.18)`;
+      ctx.lineWidth=1.4;
+    }else if(active){
+      ctx.strokeStyle=ST[st2].c+'88';
+      ctx.lineWidth=1.1;
+    }else{
+      ctx.strokeStyle='rgba(74,111,165,.1)';
+      ctx.lineWidth=0.7;
+    }
+    ctx.stroke();
+  });
+
+  // nodes
+  nodes.forEach(n=>{
+    if(!visible(n)) return;
+    const isSel=n.id===selId, isHov=n.id===hovId;
+    ctx.save();
+
+    if(n.isC){
+      // glow
+      const gr=ctx.createRadialGradient(n.x,n.y,n.r*.4,n.x,n.y,n.r*2.8);
+      gr.addColorStop(0,'rgba(0,212,255,.16)'); gr.addColorStop(1,'transparent');
+      ctx.fillStyle=gr; ctx.beginPath(); ctx.arc(n.x,n.y,n.r*2.8,0,Math.PI*2); ctx.fill();
+      // circle
+      ctx.beginPath(); ctx.arc(n.x,n.y,n.r,0,Math.PI*2);
+      ctx.fillStyle='#0a1525'; ctx.fill();
+      ctx.strokeStyle='#00d4ff'; ctx.lineWidth=1.5;
+      ctx.shadowBlur=20; ctx.shadowColor='#00d4ff'; ctx.stroke();
+      // inner
+      ctx.beginPath(); ctx.arc(n.x,n.y,n.r*.5,0,Math.PI*2);
+      ctx.fillStyle='rgba(0,212,255,.15)'; ctx.fill();
+      // text
+      ctx.fillStyle='#00d4ff'; ctx.font='bold 11px Syne,sans-serif';
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.shadowBlur=8; ctx.shadowColor='#00d4ff';
+      ctx.fillText('Ems',n.x,n.y);
+
+    }else if(n.isH){
+      const hue=n.hue;
+      if(isHov||isSel){
+        const gr=ctx.createRadialGradient(n.x,n.y,0,n.x,n.y,n.r*2.2);
+        gr.addColorStop(0,`hsla(${hue},80%,55%,.22)`); gr.addColorStop(1,'transparent');
+        ctx.fillStyle=gr; ctx.beginPath(); ctx.arc(n.x,n.y,n.r*2.2,0,Math.PI*2); ctx.fill();
+      }
+      ctx.beginPath(); ctx.arc(n.x,n.y,n.r+(isHov?2:0),0,Math.PI*2);
+      ctx.fillStyle=`hsla(${hue},50%,11%,.92)`; ctx.fill();
+      ctx.strokeStyle=`hsla(${hue},65%,55%,.55)`;
+      ctx.lineWidth=1.2;
+      if(isHov){ctx.shadowBlur=12;ctx.shadowColor=`hsl(${hue},70%,55%)`;}
+      ctx.stroke();
+      // label
+      const parts=n.label.split(' ');
+      ctx.font='500 9px DM Sans,sans-serif';
+      ctx.textAlign='center'; ctx.fillStyle=`hsla(${hue},65%,70%,.9)`;
+      ctx.shadowBlur=0;
+      parts.forEach((p,i)=>ctx.fillText(p,n.x,n.y+n.r+11+i*10));
+
+    }else{
+      // company node
+      const st2=statuses[n.id];
+      const sc2=ST[st2].c, sg=ST[st2].g;
+      if(isSel){
+        const gr=ctx.createRadialGradient(n.x,n.y,0,n.x,n.y,n.r*3.5);
+        gr.addColorStop(0,sg); gr.addColorStop(1,'transparent');
+        ctx.fillStyle=gr; ctx.beginPath(); ctx.arc(n.x,n.y,n.r*3.5,0,Math.PI*2); ctx.fill();
+      }
+      ctx.beginPath(); ctx.arc(n.x,n.y,n.r+(isHov&&!isSel?2:0)+(isSel?1:0),0,Math.PI*2);
+      ctx.fillStyle=sc2+'2a'; ctx.fill();
+      ctx.strokeStyle=sc2; ctx.lineWidth=isSel?2:1;
+      if(isHov||isSel){ctx.shadowBlur=isSel?16:8;ctx.shadowColor=sc2;}
+      ctx.stroke();
+      // inner dot
+      ctx.beginPath(); ctx.arc(n.x,n.y,n.r*.38,0,Math.PI*2);
+      ctx.fillStyle=sc2+'bb'; ctx.fill();
+      // hover label
+      if(isHov||isSel){
+        const lbl=n.co.name;
+        ctx.font='500 10px DM Sans,sans-serif';
+        const tw=ctx.measureText(lbl).width;
+        const pd=7,bw=tw+pd*2,bh=17,bx=n.x-bw/2,by=n.y+n.r+4;
+        ctx.fillStyle='rgba(8,18,32,.94)'; ctx.shadowBlur=0;
+        ctx.beginPath(); ctx.roundRect(bx,by,bw,bh,4); ctx.fill();
+        ctx.strokeStyle=sc2+'66'; ctx.lineWidth=.5; ctx.stroke();
+        ctx.fillStyle='#fff'; ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillText(lbl,n.x,by+bh/2);
+      }
+    }
+    ctx.restore();
+  });
+
+  ctx.restore();
+}
+
+// ── LOOP ──
+let lastT=0;
+function loop(t){
+  raf=requestAnimationFrame(loop);
+  drawBg(t*.001);
+  draw(t*.001);
+  lastT=t;
+}
+
+// ── HIT TEST ──
+function tw(px,py){return{x:(px-ox)/sc,y:(py-oy)/sc};}
+function hit(wx,wy){
+  for(let i=nodes.length-1;i>=0;i--){
+    const n=nodes[i];
+    if(!visible(n)||n.isC) continue;
+    const dx=wx-n.x,dy=wy-n.y;
+    if(dx*dx+dy*dy<=(n.r+5)*(n.r+5)) return n;
+  }
+  return null;
+}
+
+// ── MOUSE EVENTS ──
+mcEl.addEventListener('mousedown',e=>{
+  const r=mcEl.getBoundingClientRect();
+  const w=tw(e.clientX-r.left,e.clientY-r.top);
+  const h=hit(w.x,w.y);
+  if(h&&!h.isH){openPanel(h);return;}
+  drag=true; ds={x:e.clientX,y:e.clientY}; do_={x:ox,y:oy};
+});
+mcEl.addEventListener('mousemove',e=>{
+  const r=mcEl.getBoundingClientRect();
+  const px=e.clientX-r.left,py=e.clientY-r.top;
+  if(drag){ox=do_.x+(e.clientX-ds.x);oy=do_.y+(e.clientY-ds.y);return;}
+  const w=tw(px,py);
+  const h=hit(w.x,w.y);
+  const tip=document.getElementById('tip');
+  if(h&&!h.isH){
+    mcEl.style.cursor='pointer';
+    hovId=h.id;
+    tip.style.display='block';
+    tip.style.left=(e.clientX+14)+'px';
+    tip.style.top=(e.clientY-6)+'px';
+    document.getElementById('tip-n').textContent=h.co.name;
+    const ts=document.getElementById('tip-s');
+    ts.textContent=h.co.parent+' · '+ST[statuses[h.id]].l;
+    ts.style.color=ST[statuses[h.id]].c;
+  }else{
+    mcEl.style.cursor=drag?'grabbing':'grab';
+    hovId=null; tip.style.display='none';
+  }
+});
+mcEl.addEventListener('mouseup',()=>drag=false);
+mcEl.addEventListener('mouseleave',()=>{drag=false;hovId=null;document.getElementById('tip').style.display='none';});
+mcEl.addEventListener('wheel',e=>{
+  e.preventDefault();
+  const r=mcEl.getBoundingClientRect();
+  const px=e.clientX-r.left,py=e.clientY-r.top;
+  const f=e.deltaY>0?.88:1.14;
+  const wx=(px-ox)/sc,wy=(py-oy)/sc;
+  sc=Math.max(.25,Math.min(5,sc*f));
+  ox=px-wx*sc; oy=py-wy*sc;
+},{passive:false});
+
+// touch support
+let t1={},tPinch=0;
+mcEl.addEventListener('touchstart',e=>{
+  if(e.touches.length===1){
+    drag=true;
+    ds={x:e.touches[0].clientX,y:e.touches[0].clientY};
+    do_={x:ox,y:oy};
+  }else if(e.touches.length===2){
+    drag=false;
+    tPinch=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+  }
+  e.preventDefault();
+},{passive:false});
+mcEl.addEventListener('touchmove',e=>{
+  if(e.touches.length===1&&drag){
+    ox=do_.x+(e.touches[0].clientX-ds.x);
+    oy=do_.y+(e.touches[0].clientY-ds.y);
+  }else if(e.touches.length===2){
+    const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+    const f=d/tPinch; tPinch=d;
+    sc=Math.max(.25,Math.min(5,sc*f));
+  }
+  e.preventDefault();
+},{passive:false});
+mcEl.addEventListener('touchend',e=>{
+  if(e.changedTouches.length===1&&!drag){
+    // tap
+    const r=mcEl.getBoundingClientRect();
+    const w=tw(e.changedTouches[0].clientX-r.left,e.changedTouches[0].clientY-r.top);
+    const h=hit(w.x,w.y);
+    if(h&&!h.isH) openPanel(h);
+  }
+  drag=false;
+});
+
+function doZoom(f){
+  const cx=W/2,cy=H/2;
+  const wx=(cx-ox)/sc,wy=(cy-oy)/sc;
+  sc=Math.max(.25,Math.min(5,sc*f));
+  ox=cx-wx*sc; oy=cy-wy*sc;
+}
+function resetView(){sc=1;ox=0;oy=0;}
+
+// ── PANEL ──
+function openPanel(node){
+  selId=node.id;
+  const c=node.co, st2=statuses[c.id];
+  document.getElementById('pBadge').textContent=c.sector;
+  document.getElementById('pName').textContent=c.name;
+  document.getElementById('pParent').textContent=c.parent;
+  document.getElementById('pEmail').innerHTML=`<a href="mailto:${c.email}">${c.email}</a>`;
+  document.getElementById('pPhone').textContent=c.phone;
+  document.getElementById('pSel').value=st2;
+  document.getElementById('pNotes').value=notes[c.id]||'';
+  refreshSt(st2);
+  document.getElementById('panel').classList.add('open');
+}
+function closePanel(){selId=null;document.getElementById('panel').classList.remove('open');}
+function refreshSt(st2){
+  const sc2=ST[st2].c;
+  const b=document.getElementById('pSt');
+  b.style.background=sc2+'18'; b.style.borderColor=sc2+'55'; b.style.color=sc2;
+  document.getElementById('pStd').style.background=sc2;
+  document.getElementById('pStl').textContent=ST[st2].l;
+}
+function updateStatus(v){
+  if(!selId)return;
+  statuses[selId]=v; refreshSt(v); updateStats();
+}
+function saveNote(v){if(selId)notes[selId]=v;}
+function quickPitch(){
+  if(!selId)return;
+  document.getElementById('pSel').value='pitched';
+  updateStatus('pitched');
+}
+function updateStats(){
+  document.getElementById('sP').textContent=Object.values(statuses).filter(s=>s==='pitched').length;
+  document.getElementById('sR').textContent=Object.values(statuses).filter(s=>s==='replied'||s==='meeting').length;
+  document.getElementById('sW').textContent=Object.values(statuses).filter(s=>s==='closed').length;
+}
+function setFilter(f,el){
+  filter=f;
+  document.querySelectorAll('.pl').forEach(p=>p.classList.remove('on'));
+  el.classList.add('on');
+}
+function doSearch(q){srch=q;}
+
+// ── EMAIL MODAL ──
+function openEmailModal(){
+  if(!selId) return;
+  const c=COS.find(x=>x.id===selId);
+  modalCo=c;
+  document.getElementById('emCo').textContent=c.parent+' · '+c.sector;
+  document.getElementById('emTi').textContent=c.name;
+  document.getElementById('emTo').value=c.email;
+  document.getElementById('emSub').value=`Ems Smart Energy Monitoring for ${c.name} — Reduce Bills 15–30%`;
+  document.getElementById('emBody').value='';
+  document.getElementById('emWc').textContent='0 words';
+  document.getElementById('emCc').textContent='0 chars';
+  document.getElementById('emFn').textContent='Click ✦ Generate to write a personalised pitch.';
+  document.getElementById('emodal').classList.add('open');
+  generateEmail();
+}
+function closeEmailModal(){document.getElementById('emodal').classList.remove('open');}
+function modalBgClick(e){if(e.target===document.getElementById('emodal'))closeEmailModal();}
+
+async function generateEmail(){
+  if(!modalCo) return;
+  const c=modalCo;
+  const btn=document.getElementById('genBtn');
+  const ov=document.getElementById('emOv');
+  const ta=document.getElementById('emBody');
+  btn.disabled=true;
+  ov.classList.add('on');
+  ta.value='';
+
+  const ctx2=SCTX[c.sector]||'commercial facility with significant electricity consumption';
+  const prompt=`Write a concise personalised B2B cold email from Dr. Jude Tissera, Director & CGO of Sprig Asia (Pvt) Ltd, Sri Lanka.
+
+PRODUCT: Ems — IoT smart energy monitoring platform
+- Real-time circuit-level electricity monitoring
+- Reduces electricity bills 15–30% via AI recommendations
+- Automates energy job-costing per production line / floor / department
+- USD 10/month subscription
+- 36-month hardware warranty, local Sri Lankan install team
+- Installs in 60 minutes, zero operational disruption
+- Deployed at: Finlays Tea, Rainco Manufacturing, Aruna Tea, National Pension Board
+
+TARGET:
+Company: ${c.name}
+Parent Group: ${c.parent}
+Sector: ${c.sector}
+Energy profile: This is a ${ctx2}
+
+EMAIL RULES:
+- Max 170 words
+- Open with ONE specific sentence about THEIR energy challenge
+- Mention 1–2 Ems benefits most relevant to their sector
+- One sentence about Sprig Asia being a local Sri Lankan company with proven deployments
+- Professional but warm peer-to-peer tone, not salesy
+- Close with CTA: offer a 20-minute demo or site visit
+- Sign off exactly as:
+
+Dr. Jude Tissera
+Director & CGO, Sprig Asia (Pvt) Ltd
+T: +94 77 733 0220 | E: jude@sprigasia.com
+www.sprigasia.com
+
+Return ONLY the email body. No subject. No markdown. Start with the opening sentence directly.`;
+
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:600,
+        stream:true,
+        messages:[{role:'user',content:prompt}]
+      })
+    });
+
+    if(!res.ok) throw new Error(res.status);
+    ov.classList.remove('on');
+    btn.disabled=false;
+
+    const reader=res.body.getReader();
+    const dec=new TextDecoder();
+    let buf='';
+
+    while(true){
+      const {done,value}=await reader.read();
+      if(done) break;
+      buf+=dec.decode(value,{stream:true});
+      const lines=buf.split('\n');
+      buf=lines.pop();
+      for(const line of lines){
+        if(line.startsWith('data: ')){
+          const d=line.slice(6).trim();
+          if(d==='[DONE]') break;
+          try{
+            const obj=JSON.parse(d);
+            if(obj.type==='content_block_delta'&&obj.delta?.text){
+              ta.value+=obj.delta.text;
+              ta.scrollTop=ta.scrollHeight;
+              countWords();
+            }
+          }catch(ex){}
+        }
+      }
+    }
+    document.getElementById('emFn').textContent='Edit freely · then copy or open in mail client.';
+
+  }catch(err){
+    ov.classList.remove('on');
+    btn.disabled=false;
+    // fallback template
+    ta.value=`Dear ${c.name} Team,
+
+As a ${c.sector.toLowerCase()} operation, electricity is one of your largest and most controllable overheads — yet without circuit-level visibility, identifying waste is nearly impossible.
+
+Ems, our IoT energy monitoring platform, gives your team real-time dashboards per production line, department and floor. Our AI recommendations help clients cut electricity bills by 15–30%, and our automated job-costing feature allocates energy costs exactly where they belong.
+
+We're a Sri Lankan company with proven deployments at Finlays, Rainco Manufacturing and the National Pension Board, and installation takes under 60 minutes with zero disruption to your operations.
+
+Could we arrange a 20-minute demo or site visit at your convenience?
+
+Warm regards,
+
+Dr. Jude Tissera
+Director & CGO, Sprig Asia (Pvt) Ltd
+T: +94 77 733 0220 | E: jude@sprigasia.com
+www.sprigasia.com`;
+    countWords();
+    document.getElementById('emFn').textContent='Template email — edit as needed. (AI needs API access)';
+  }
+}
+
+function countWords(){
+  const t=document.getElementById('emBody').value.trim();
+  const w=t?t.split(/\s+/).length:0;
+  document.getElementById('emWc').textContent=w+' words';
+  document.getElementById('emCc').textContent=t.length+' chars';
+}
+function copyEmail(){
+  const full=`Subject: ${document.getElementById('emSub').value}\n\n${document.getElementById('emBody').value}`;
+  navigator.clipboard.writeText(full).then(()=>{
+    const b=document.querySelector('.mb-c');
+    const orig=b.textContent; b.textContent='✓ Copied!';
+    b.style.background='rgba(0,255,157,.2)';
+    setTimeout(()=>{b.textContent=orig;b.style.background='';},2000);
+  });
+}
+function openMailto(){
+  const to=document.getElementById('emTo').value;
+  const sub=encodeURIComponent(document.getElementById('emSub').value);
+  const body=encodeURIComponent(document.getElementById('emBody').value);
+  window.open(`mailto:${to}?subject=${sub}&body=${body}`);
+}
+function markPitchedFromModal(){
+  if(!modalCo) return;
+  statuses[modalCo.id]='pitched';
+  if(selId===modalCo.id){document.getElementById('pSel').value='pitched';refreshSt('pitched');}
+  updateStats();
+  const b=document.querySelector('.mb-p');
+  const orig=b.textContent; b.textContent='✓ Done!';
+  setTimeout(()=>{b.textContent=orig;},2000);
+}
+
+// ── INIT ──
+window.addEventListener('resize',resize);
+resize();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
